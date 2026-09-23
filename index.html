@@ -92,6 +92,22 @@ details summary{cursor:pointer;color:var(--focus);font-size:13px}
 details .val{margin-top:6px}
 .links a{color:var(--focus);display:block;font-size:12.5px;word-break:break-all;margin-top:2px}
 .marker-cluster-custom{background:rgba(12,34,49,.85);border:2px solid var(--focus);border-radius:50%;color:#fff;font-weight:600;display:flex;align-items:center;justify-content:center;font-size:13px}
+
+.years{padding:12px 20px 4px;border-bottom:1px solid var(--line)}
+.years-head{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--muted);margin-bottom:6px}
+.bars{display:flex;align-items:flex-end;gap:3px;height:64px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;border:0;padding:0;border-radius:4px;background:transparent;cursor:pointer;min-width:0}
+.bar i{display:block;width:100%;background:rgba(127,209,240,.45);border-radius:3px 3px 0 0;min-height:2px}
+.bar:hover i{background:rgba(127,209,240,.75)}
+.bar.on i{background:var(--focus)}
+.bar.dim i{background:rgba(157,178,188,.18)}
+.bar-lbl{display:flex;gap:3px;margin-top:4px}
+.bar-lbl span{flex:1;text-align:center;font-size:10px;color:var(--muted);min-width:0;overflow:hidden}
+.bar-lbl span.on{color:var(--text);font-weight:600}
+.reset{grid-column:1/-1;justify-self:start;padding:5px 10px;font-size:12px;color:var(--muted)}
+.reset[hidden]{display:none}
+.chip.on{background:rgba(255,255,255,.1);border-color:rgba(230,238,240,.4)}
+.item.active{background:rgba(127,209,240,.12);box-shadow:inset 3px 0 0 var(--focus)}
 @media (max-width:760px){
   .panel{top:auto;bottom:0;left:0;right:0;width:100%;max-width:100%;height:46vh;border-radius:14px 14px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
   .basemap{right:12px;top:calc(12px + env(safe-area-inset-top,0px))}
@@ -119,10 +135,16 @@ details .val{margin-top:6px}
     <div class="stat"><div class="v" id="s-lam">–</div><div class="l">potensi kerusakan padang lamun (ha)</div></div>
     <div class="stat" style="grid-column:1/-1"><div class="v" id="s-man">–</div><div class="l">potensi kerusakan mangrove (ha)</div></div>
   </div>
+  <div class="years">
+    <div class="years-head"><span>Kejadian per tahun</span><span id="year-hint">klik batang untuk memfilter</span></div>
+    <div class="bars" id="bars" role="group" aria-label="Filter tahun"></div>
+    <div class="bar-lbl" id="bar-lbl" aria-hidden="true"></div>
+  </div>
   <div class="filters">
     <label>Tahun<select id="f-tahun"><option value="">Semua tahun</option></select></label>
     <label>Provinsi<select id="f-prov"><option value="">Semua provinsi</option></select></label>
     <label class="wide">Kategori penyebab<select id="f-kat"><option value="">Semua kategori</option></select></label>
+    <button type="button" class="reset" id="reset" hidden>Hapus filter</button>
   </div>
   <div class="legend" id="legend" aria-label="Kategori penyebab"></div>
   <div class="list" id="list" aria-label="Daftar kejadian"></div>
@@ -175,7 +197,10 @@ const cluster = L.markerClusterGroup({
 });
 map.addLayer(cluster);
 
-let rows=[], hiddenCats=new Set(), markers=new Map();
+let rows=[], markers=new Map(), items=new Map(), activeId=null;
+const F={tahun:"f-tahun",prov:"f-prov",kat:"f-kat"};
+const sel=k=>document.getElementById(F[k]);
+const val=k=>sel(k).value;
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const clean = s => String(s ?? "").trim();
@@ -190,6 +215,7 @@ function coords(r){
 }
 const fmt = v => v.toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2});
 const urls = s => (clean(s).match(/https?:\/\/[^\s"]+/g)||[]);
+const isWide = () => window.innerWidth>760;
 
 function popupHTML(r){
   const col=colorOf(r.kat);
@@ -216,60 +242,119 @@ function popupHTML(r){
   return h+"</div></div>";
 }
 
-function filtered(){
-  const t=document.getElementById("f-tahun").value,p=document.getElementById("f-prov").value,k=document.getElementById("f-kat").value;
-  return rows.filter(r=>(!t||r.tahun===t)&&(!p||r.prov===p)&&(!k||r.kat===k)&&!hiddenCats.has(r.kat));
+function match(r,skip){
+  return Object.keys(F).every(k=>k===skip||!val(k)||r[k]===val(k));
+}
+const filtered = () => rows.filter(r=>match(r,null));
+
+function refreshSelects(){
+  const labels={tahun:"Semua tahun",prov:"Semua provinsi",kat:"Semua kategori"};
+  const sorts={tahun:(a,b)=>b-a,prov:(a,b)=>a.localeCompare(b,"id"),kat:(a,b)=>a.localeCompare(b,"id")};
+  for(let pass=0;pass<3;pass++){
+    let changed=false;
+    Object.keys(F).forEach(k=>{
+      const pool=rows.filter(r=>match(r,k)), counts={};
+      pool.forEach(r=>{if(r[k])counts[r[k]]=(counts[r[k]]||0)+1;});
+      const s=sel(k), cur=s.value;
+      s.innerHTML="";
+      const o0=document.createElement("option");o0.value="";o0.textContent=labels[k]+" ("+pool.length+")";s.appendChild(o0);
+      Object.keys(counts).sort(sorts[k]).forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v+" ("+counts[v]+")";s.appendChild(o);});
+      if(cur&&counts[cur])s.value=cur;else{if(cur)changed=true;s.value="";}
+    });
+    if(!changed)break;
+  }
+  document.getElementById("reset").hidden=!Object.keys(F).some(k=>val(k));
+}
+
+function renderYears(){
+  const pool=rows.filter(r=>match(r,"tahun"));
+  const years=[...new Set(rows.map(r=>r.tahun).filter(Boolean))].sort((a,b)=>a-b);
+  const counts={};pool.forEach(r=>{counts[r.tahun]=(counts[r.tahun]||0)+1;});
+  const max=Math.max(1,...Object.values(counts));
+  const cur=val("tahun"), bars=document.getElementById("bars"), lbl=document.getElementById("bar-lbl");
+  bars.innerHTML="";lbl.innerHTML="";
+  years.forEach(y=>{
+    const n=counts[y]||0;
+    const b=document.createElement("button");b.type="button";
+    b.className="bar"+(cur===y?" on":"")+(cur&&cur!==y?" dim":"");
+    b.title=y+": "+n+" kejadian";b.setAttribute("aria-label",y+", "+n+" kejadian");b.setAttribute("aria-pressed",cur===y);
+    b.innerHTML="<i style='height:"+(n?Math.max(6,n/max*100):0)+"%'></i>";
+    b.disabled=!n&&cur!==y;
+    b.onclick=()=>{sel("tahun").value=(cur===y?"":y);update(true);};
+    bars.appendChild(b);
+    const sp=document.createElement("span");sp.textContent="'"+y.slice(-2);if(cur===y)sp.className="on";lbl.appendChild(sp);
+  });
+}
+
+function renderLegend(){
+  const pool=rows.filter(r=>match(r,"kat")), cur=val("kat");
+  const el=document.getElementById("legend");el.innerHTML="";
+  Object.keys(CATS).forEach(c=>{
+    const n=pool.filter(r=>r.kat===c).length;if(!n)return;
+    const b=document.createElement("button");b.type="button";
+    b.className="chip"+(cur===c?" on":"")+(cur&&cur!==c?" off":"");
+    b.setAttribute("aria-pressed",cur===c);
+    b.innerHTML="<span class='dot' style='background:"+colorOf(c)+"'></span>"+esc(c)+" <span class='n'>"+n+"</span>";
+    b.onclick=()=>{sel("kat").value=(cur===c?"":c);update(true);};
+    el.appendChild(b);
+  });
+}
+
+function styleMarker(id,big){
+  const m=markers.get(id);if(!m)return;
+  m.setStyle({radius:big?13:8,weight:big?3:1.5});
+  if(big)m.bringToFront();
+}
+function setActive(id,scroll){
+  if(activeId!==null){const o=items.get(activeId);if(o)o.classList.remove("active");styleMarker(activeId,false);}
+  activeId=id;
+  if(id===null)return;
+  const it=items.get(id);
+  if(it){it.classList.add("active");if(scroll)it.scrollIntoView({block:"nearest",behavior:"smooth"});}
+  styleMarker(id,true);
+}
+
+function fitTo(list){
+  const pts=list.filter(r=>r.ll).map(r=>r.ll);if(!pts.length)return;
+  const opt=isWide()?{paddingTopLeft:[400,60],paddingBottomRight:[60,60],maxZoom:9}:{paddingTopLeft:[30,60],paddingBottomRight:[30,window.innerHeight*0.48],maxZoom:9};
+  map.fitBounds(pts,opt);
 }
 
 function render(fit){
   const list=filtered();
-  cluster.clearLayers();markers.clear();
+  activeId=null;
+  cluster.clearLayers();markers.clear();items.clear();
   list.forEach(r=>{
     if(!r.ll)return;
     const m=L.circleMarker(r.ll,{radius:8,color:"#fff",weight:1.5,fillColor:colorOf(r.kat),fillOpacity:.95});
-    m.bindPopup(popupHTML(r),{maxWidth:360,autoPanPadding:[40,40]});
+    m.bindPopup(popupHTML(r),{maxWidth:360,autoPanPaddingTopLeft:isWide()?[400,40]:[20,40],autoPanPaddingBottomRight:[40,40]});
     m.bindTooltip(esc(r.lokasi),{direction:"top",offset:[0,-6]});
+    m.on("click",()=>setActive(r.id,true));
+    m.on("popupclose",()=>{if(activeId===r.id)setActive(null);});
     cluster.addLayer(m);markers.set(r.id,m);
   });
-  const ids=new Set(list.map(r=>r.id));
   const sum=k=>list.reduce((a,r)=>a+(r[k]||0),0);
-  document.getElementById("s-n").textContent=ids.size;
+  document.getElementById("s-n").textContent=new Set(list.map(r=>r.id)).size;
   document.getElementById("s-kar").textContent=fmt(sum("kar"));
   document.getElementById("s-lam").textContent=fmt(sum("lam"));
   document.getElementById("s-man").textContent=fmt(sum("man"));
   const noMap=list.filter(r=>!r.ll).length;
-  document.getElementById("sub").textContent=list.length+" kejadian ditampilkan"+(noMap?", "+noMap+" belum memiliki koordinat":"");
+  const active=Object.keys(F).filter(k=>val(k)).map(k=>val(k));
+  document.getElementById("sub").textContent=list.length+" kejadian"+(active.length?" untuk "+active.join(", "):" ditampilkan")+(noMap?"; "+noMap+" belum memiliki koordinat":"");
   const el=document.getElementById("list");el.innerHTML="";
   list.slice().sort((a,b)=>(+b.tahun||0)-(+a.tahun||0)||a.id-b.id).forEach(r=>{
     const b=document.createElement("button");b.type="button";b.className="item"+(r.ll?"":" nomap");
     b.innerHTML="<span class='dot' style='background:"+colorOf(r.kat)+"'></span><span><span class='t'>"+esc(r.lokasi)+"</span><br><span class='m'>"+esc([r.prov,r.tanggal].filter(Boolean).join(", "))+"</span></span>";
-    b.onclick=()=>{const m=markers.get(r.id);if(!m)return;cluster.zoomToShowLayer(m,()=>m.openPopup());};
-    el.appendChild(b);
+    b.onmouseenter=()=>{if(activeId!==r.id)styleMarker(r.id,true);};
+    b.onmouseleave=()=>{if(activeId!==r.id)styleMarker(r.id,false);};
+    b.onclick=()=>{const m=markers.get(r.id);if(!m)return;setActive(r.id,false);cluster.zoomToShowLayer(m,()=>m.openPopup());};
+    items.set(r.id,b);el.appendChild(b);
   });
-  renderLegend();
-  if(fit){const pts=list.filter(r=>r.ll).map(r=>r.ll);if(pts.length)map.fitBounds(pts,{padding:[40,40],maxZoom:9});}
+  renderYears();renderLegend();
+  if(fit)fitTo(list);
 }
 
-function renderLegend(){
-  const k=document.getElementById("f-kat").value;
-  const base=rows.filter(r=>(!document.getElementById("f-tahun").value||r.tahun===document.getElementById("f-tahun").value)&&(!document.getElementById("f-prov").value||r.prov===document.getElementById("f-prov").value));
-  const el=document.getElementById("legend");el.innerHTML="";
-  Object.keys(CATS).forEach(c=>{
-    const n=base.filter(r=>r.kat===c).length;if(!n)return;
-    const b=document.createElement("button");b.type="button";b.className="chip"+((hiddenCats.has(c)||(k&&k!==c))?" off":"");
-    b.setAttribute("aria-pressed",!hiddenCats.has(c));
-    b.innerHTML="<span class='dot' style='background:"+colorOf(c)+"'></span>"+esc(c)+" <span class='n'>"+n+"</span>";
-    b.onclick=()=>{hiddenCats.has(c)?hiddenCats.delete(c):hiddenCats.add(c);render(false);};
-    el.appendChild(b);
-  });
-}
-
-function fillSelect(id,vals,sortFn){
-  const s=document.getElementById(id),cur=s.value;
-  while(s.options.length>1)s.remove(1);
-  [...new Set(vals.filter(Boolean))].sort(sortFn).forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;s.appendChild(o);});
-  if([...s.options].some(o=>o.value===cur))s.value=cur;
-}
+function update(fit){map.closePopup();refreshSelects();render(fit);}
 
 function load(first){
   const st=document.getElementById("status");
@@ -286,17 +371,15 @@ function load(first){
         kar:num(r["Potensi Luas Terumbu Karang Terdampak (ha)"]),lam:num(r["Potensi Luas Padang Lamun Terdampak (ha)"]),man:num(r["Potensi Luas Mangrove Terdampak (ha)"])
       }));
       if(!rows.length){st.hidden=false;st.textContent="Data kosong. Pastikan Sheet1 sudah dipublikasikan sebagai CSV.";return;}
-      fillSelect("f-tahun",rows.map(r=>r.tahun),(a,b)=>b-a);
-      fillSelect("f-prov",rows.map(r=>r.prov),(a,b)=>a.localeCompare(b,"id"));
-      fillSelect("f-kat",rows.map(r=>r.kat),(a,b)=>a.localeCompare(b,"id"));
       st.hidden=true;
       document.getElementById("updated").textContent="Data dimuat "+new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
-      render(first);
+      refreshSelects();render(first);
     })
     .catch(err=>{console.error(err);st.hidden=false;st.textContent="Data gagal dimuat ("+err.message+"). Periksa koneksi, lalu klik Muat ulang data.";});
 }
 
-["f-tahun","f-prov","f-kat"].forEach(id=>document.getElementById(id).addEventListener("change",()=>{hiddenCats.clear();render(true);}));
+Object.values(F).forEach(id=>document.getElementById(id).addEventListener("change",()=>update(true)));
+document.getElementById("reset").onclick=()=>{Object.keys(F).forEach(k=>sel(k).value="");update(true);};
 document.getElementById("reload").onclick=()=>load(false);
 setInterval(()=>load(false),10*60*1000);
 load(true);
