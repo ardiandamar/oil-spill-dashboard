@@ -4,116 +4,156 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sebaran Kejadian Tumpahan Minyak di Indonesia</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%23E4572E'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 8C50 8 20 44 20 62a30 30 0 0 0 60 0C80 44 50 8 50 8z' fill='%23F5B83D'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
 <style>
 :root{
-  --ink:#0C2231;
-  --panel:rgba(12,34,49,.92);
-  --line:rgba(230,238,240,.14);
-  --text:#E6EEF0;
-  --muted:#9DB2BC;
-  --focus:#7FD1F0;
-  --c-kecelakaan:#E4572E;
-  --c-pipa:#F2A541;
-  --c-operasional:#3FA7D6;
-  --c-platform:#B084CC;
-  --c-kapal:#7BC47F;
-  --c-tidak:#A7B3B9;
-  font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --abyss:#061820;
+  --deep:#0B2530;
+  --shelf:#12323F;
+  --line:rgba(214,236,242,.12);
+  --line-2:rgba(214,236,242,.22);
+  --text:#EAF3F5;
+  --muted:#8DA9B4;
+  --boom:#F5B83D;
+  --boom-ink:#2A1C00;
+  --focus:#F5B83D;
+  --c-kecelakaan:#FF5E4F;
+  --c-pipa:#F5B83D;
+  --c-operasional:#46C2E8;
+  --c-platform:#B98CFF;
+  --c-kapal:#6FD39B;
+  --c-tidak:#A3B4BC;
+  --display:"Bricolage Grotesque","Public Sans",system-ui,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-family:var(--body);
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;background:var(--ink);color:var(--text)}
-body{font-size:14px;line-height:1.5}
-#map{position:fixed;inset:0;background:#0a1a24}
-.panel{position:absolute;z-index:1000;top:calc(16px + env(safe-area-inset-top,0px));left:16px;bottom:16px;width:360px;max-width:calc(100% - 32px);
-  background:var(--panel);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;backdrop-filter:blur(6px)}
-.panel-head{padding:18px 20px 14px;border-bottom:1px solid var(--line)}
-h1{font-size:19px;font-weight:600;line-height:1.25;margin:0 0 4px;letter-spacing:-.01em}
-.sub{color:var(--muted);font-size:13px;margin:0}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
-.stat{background:var(--ink);padding:12px 16px}
-.stat .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
-.stat .l{color:var(--muted);font-size:12px;margin-top:3px}
-.stat.big{grid-column:1/-1}
-.stat.big .v{font-size:30px}
-.filters{padding:14px 20px;display:grid;grid-template-columns:1fr 1fr;gap:8px;border-bottom:1px solid var(--line)}
-.filters label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
-.filters label.wide{grid-column:1/-1}
-select,button{font:inherit;color:var(--text)}
-select{appearance:none;background:rgba(255,255,255,.06) url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%239DB2BC'/></svg>") no-repeat right 10px center;
-  border:1px solid var(--line);border-radius:8px;padding:7px 28px 7px 10px;font-size:13px}
-select option{background:var(--ink)}
-button{background:transparent;border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer}
-button:hover{background:rgba(255,255,255,.07)}
+html,body{height:100%;margin:0;background:var(--abyss);color:var(--text)}
+body{font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+#map{position:fixed;inset:0;background:var(--abyss)}
+button,select{font:inherit;color:var(--text)}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.legend{padding:12px 20px;display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--line)}
-.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);cursor:pointer;background:transparent}
-.chip .dot{width:9px;height:9px;border-radius:50%}
-.chip.off{opacity:.4}
-.chip .n{color:var(--muted);font-variant-numeric:tabular-nums}
-.list{flex:1;overflow-y:auto;padding:6px 0}
-.item{display:grid;grid-template-columns:10px 1fr;gap:10px;padding:10px 20px;cursor:pointer;border:0;border-radius:0;width:100%;text-align:left}
-.item:hover{background:rgba(255,255,255,.05)}
-.item .dot{width:10px;height:10px;border-radius:50%;margin-top:5px}
-.item .t{font-weight:500;font-size:13px}
-.item .m{color:var(--muted);font-size:12px}
-.item.nomap .t::after{content:" (belum ada koordinat)";color:var(--muted);font-weight:400}
-.foot{padding:10px 20px 14px;border-top:1px solid var(--line);color:var(--muted);font-size:11.5px;line-height:1.45}
-.foot .row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
-.basemap{position:absolute;z-index:1000;top:calc(16px + env(safe-area-inset-top,0px));right:16px;display:flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.basemap button{border:0;border-radius:0;padding:8px 14px}
-.basemap button[aria-pressed="true"]{background:rgba(127,209,240,.18);color:#fff}
-.status{position:absolute;z-index:1001;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 20px;max-width:360px;text-align:center}
-.status[hidden]{display:none}
-.leaflet-popup-content-wrapper{background:var(--ink);color:var(--text);border-radius:12px;border:1px solid var(--line);box-shadow:0 8px 30px rgba(0,0,0,.45)}
-.leaflet-popup-tip{background:var(--ink)}
-.leaflet-popup-content{margin:0;width:340px!important;max-width:calc(100vw - 60px)}
-.leaflet-container a.leaflet-popup-close-button{color:var(--muted);top:8px;right:8px}
-.pop{max-height:min(460px,60vh);overflow-y:auto}
-.pop-head{padding:16px 18px 12px;border-bottom:1px solid var(--line)}
-.pop-head h2{font-size:16px;font-weight:600;line-height:1.3;margin:6px 24px 4px 0}
-.pop-head .m{color:var(--muted);font-size:12.5px}
-.cat{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:500;padding:3px 9px;border-radius:999px}
-.pop-body{padding:10px 18px 16px}
-.f{padding:8px 0;border-bottom:1px solid var(--line)}
-.f:last-child{border-bottom:0}
-.f .k{color:var(--muted);font-size:11.5px;margin-bottom:2px}
-.f .val{font-size:13px;white-space:pre-line}
-.eco{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
-.eco div{background:rgba(255,255,255,.05);border-radius:8px;padding:7px 8px}
-.eco b{display:block;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
-.eco span{font-size:11px;color:var(--muted)}
-details summary{cursor:pointer;color:var(--focus);font-size:13px}
-details .val{margin-top:6px}
-.links a{color:var(--focus);display:block;font-size:12.5px;word-break:break-all;margin-top:2px}
-.marker-cluster-custom{background:rgba(12,34,49,.85);border:2px solid var(--focus);border-radius:50%;color:#fff;font-weight:600;display:flex;align-items:center;justify-content:center;font-size:13px}
 
-.years{padding:12px 20px 4px;border-bottom:1px solid var(--line)}
-.years-head{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--muted);margin-bottom:6px}
-.bars{display:flex;align-items:flex-end;gap:3px;height:64px}
-.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;border:0;padding:0;border-radius:4px;background:transparent;cursor:pointer;min-width:0}
-.bar i{display:block;width:100%;background:rgba(127,209,240,.45);border-radius:3px 3px 0 0;min-height:2px}
-.bar:hover i{background:rgba(127,209,240,.75)}
-.bar.on i{background:var(--focus)}
-.bar.dim i{background:rgba(157,178,188,.18)}
-.bar-lbl{display:flex;gap:3px;margin-top:4px}
-.bar-lbl span{flex:1;text-align:center;font-size:10px;color:var(--muted);min-width:0;overflow:hidden}
-.bar-lbl span.on{color:var(--text);font-weight:600}
-.reset{grid-column:1/-1;justify-self:start;padding:5px 10px;font-size:12px;color:var(--muted)}
-.reset[hidden]{display:none}
-.chip.on{background:rgba(255,255,255,.1);border-color:rgba(230,238,240,.4)}
-.item.active{background:rgba(127,209,240,.12);box-shadow:inset 3px 0 0 var(--focus)}
+.panel{position:absolute;z-index:1000;top:calc(16px + env(safe-area-inset-top,0px));left:16px;bottom:16px;width:380px;max-width:calc(100% - 32px);
+  background:rgba(6,24,32,.94);border:1px solid var(--line);border-radius:18px;display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-width:thin;scrollbar-color:rgba(141,169,180,.35) transparent;backdrop-filter:blur(8px)}
+.panel>*{flex-shrink:0}
+.sec{padding:16px 22px;border-top:1px solid var(--line)}
+.sec-h{display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;font-size:12.5px;font-weight:500;color:var(--muted)}
+.sec-h .aside{font-weight:400}
+
+.head{padding:22px 22px 18px;border-top:0;position:relative}
+.head::before{content:"";position:absolute;left:22px;top:0;width:44px;height:3px;background:var(--boom);border-radius:0 0 3px 3px}
+h1{font-family:var(--display);font-size:24px;font-weight:700;line-height:1.12;letter-spacing:-.015em;margin:4px 0 8px}
+.status-line{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;margin:0}
+.live{width:7px;height:7px;border-radius:50%;background:var(--c-kapal);box-shadow:0 0 0 3px rgba(111,211,155,.2)}
+
+.hero{display:flex;align-items:baseline;gap:10px}
+.hero .v{font-family:var(--display);font-size:56px;font-weight:700;line-height:.95;letter-spacing:-.03em;color:var(--boom);font-variant-numeric:tabular-nums}
+.hero .l{font-size:14px;color:var(--text);max-width:12ch;line-height:1.3}
+.eco-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px}
+.eco-stats div{background:var(--deep);border-radius:10px;padding:10px 10px 9px}
+.eco-stats b{display:block;font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eco-stats span{display:block;font-size:11.5px;color:var(--muted);line-height:1.3;margin-top:2px}
+.eco-note{font-size:11.5px;color:var(--muted);margin:8px 0 0}
+
+.bars{display:flex;align-items:flex-end;gap:4px;height:72px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;border:0;padding:0;background:transparent;cursor:pointer;min-width:0;position:relative}
+.bar i{display:block;width:100%;background:var(--shelf);border-radius:4px 4px 1px 1px;min-height:3px;transition:background .15s}
+.bar:hover i{background:#1E5063}
+.bar.on i{background:var(--boom)}
+.bar.dim i{background:rgba(18,50,63,.55)}
+.bar:disabled{cursor:default}
+.bar b{position:absolute;top:-2px;font-size:10.5px;font-weight:600;color:var(--boom);opacity:0}
+.bar.on b{opacity:1}
+.bar-lbl{display:flex;gap:4px;margin-top:6px}
+.bar-lbl span{flex:1;text-align:center;font-size:10.5px;color:var(--muted);min-width:0;font-variant-numeric:tabular-nums}
+.bar-lbl span.on{color:var(--boom);font-weight:600}
+
+.filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.filters label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);min-width:0}
+.filters label.wide{grid-column:1/-1}
+select{appearance:none;width:100%;min-width:0;text-overflow:ellipsis;background:var(--deep) url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%238DA9B4'/></svg>") no-repeat right 11px center;
+  border:1px solid var(--line);border-radius:10px;padding:9px 30px 9px 12px;font-size:13.5px;cursor:pointer}
+select:hover{border-color:var(--line-2)}
+select option{background:var(--abyss)}
+.link-btn{background:none;border:0;padding:0;color:var(--boom);font-size:12.5px;cursor:pointer}
+.link-btn[hidden]{display:none}
+.link-btn:hover{text-decoration:underline}
+
+.legend{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;padding:5px 10px 5px 9px;border-radius:999px;border:1px solid var(--line);background:transparent;cursor:pointer}
+.chip:hover{border-color:var(--line-2)}
+.chip .dot{width:9px;height:9px;border-radius:50%}
+.chip .n{color:var(--muted);font-variant-numeric:tabular-nums}
+.chip.on{background:var(--deep);border-color:var(--line-2)}
+.chip.off{opacity:.4}
+
+.list-sec{padding:12px 0 8px}
+.list-sec .sec-h{padding:0 22px}
+.item{display:grid;grid-template-columns:10px minmax(0,1fr);gap:12px;padding:10px 22px;cursor:pointer;border:0;width:100%;text-align:left;background:transparent;border-left:3px solid transparent}
+.item:hover{background:rgba(214,236,242,.04)}
+.item .dot{width:10px;height:10px;border-radius:50%;margin-top:5px}
+.item .t{font-weight:500;font-size:13.5px;line-height:1.35}
+.item .m{color:var(--muted);font-size:12px}
+.item.nomap .m::after{content:" · belum ada koordinat"}
+.item.active{background:rgba(245,184,61,.08);border-left-color:var(--boom)}
+
+.foot{padding:14px 22px 18px;color:var(--muted);font-size:11.5px;line-height:1.5}
+.foot .row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.ghost{background:transparent;border:1px solid var(--line-2);border-radius:8px;padding:6px 11px;font-size:12px;cursor:pointer}
+.ghost:hover{background:var(--deep)}
+
+.basemap{position:absolute;z-index:1000;top:calc(16px + env(safe-area-inset-top,0px));right:16px;display:flex;padding:3px;gap:2px;background:rgba(6,24,32,.94);border:1px solid var(--line);border-radius:12px}
+.basemap button{border:0;background:transparent;border-radius:9px;padding:7px 14px;font-size:13px;cursor:pointer;color:var(--muted)}
+.basemap button[aria-pressed="true"]{background:var(--boom);color:var(--boom-ink);font-weight:600}
+
+.leaflet-bar{border:1px solid var(--line)!important;border-radius:12px!important;overflow:hidden}
+.leaflet-bar a{background:rgba(6,24,32,.94)!important;color:var(--text)!important;border-bottom:1px solid var(--line)!important;width:36px!important;height:36px!important;line-height:36px!important}
+.leaflet-bar a:hover{background:var(--deep)!important}
+.leaflet-control-attribution{background:rgba(6,24,32,.75)!important;color:var(--muted)!important;font-size:10.5px}
+.leaflet-control-attribution a{color:var(--text)!important}
+.leaflet-tooltip{background:var(--abyss);color:var(--text);border:1px solid var(--line-2);border-radius:8px;font-family:var(--body);font-size:12.5px;padding:5px 9px;box-shadow:none}
+.leaflet-tooltip-top:before{border-top-color:var(--abyss)}
+
+.status{position:absolute;z-index:1001;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(6,24,32,.96);border:1px solid var(--line);border-radius:14px;padding:16px 20px;max-width:360px;text-align:center}
+.status[hidden]{display:none}
+
+.leaflet-popup-content-wrapper{background:var(--abyss);color:var(--text);border-radius:16px;border:1px solid var(--line-2);box-shadow:0 12px 40px rgba(0,0,0,.5);padding:0;overflow:hidden}
+.leaflet-popup-tip{background:var(--abyss)}
+.leaflet-popup-content{margin:0;width:350px!important;max-width:calc(100vw - 60px);font-family:var(--body)}
+.leaflet-container a.leaflet-popup-close-button{color:var(--muted);top:10px;right:10px;font-size:20px}
+.pop{max-height:min(480px,62vh);overflow-y:auto;scrollbar-width:thin}
+.pop-head{padding:18px 20px 14px;border-top:4px solid var(--cat)}
+.pop-head h2{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.01em;line-height:1.2;margin:8px 26px 4px 0}
+.pop-head .m{color:var(--muted);font-size:12.5px}
+.cat{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px}
+.pop-body{padding:4px 20px 16px}
+.f{padding:10px 0;border-top:1px solid var(--line)}
+.f .k{color:var(--muted);font-size:11.5px;margin-bottom:3px}
+.f .val{font-size:13px;white-space:pre-line;line-height:1.5}
+.eco{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+.eco div{background:var(--deep);border-radius:9px;padding:8px 9px}
+.eco b{display:block;font-family:var(--display);font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.eco span{font-size:11px;color:var(--muted)}
+details summary{cursor:pointer;color:var(--boom);font-size:13px;font-weight:500}
+details .val{margin-top:8px}
+.links a{color:var(--boom);display:block;font-size:12.5px;word-break:break-all;margin-top:3px}
+
+.marker-cluster-custom{background:rgba(6,24,32,.9);border:2px solid var(--boom);border-radius:50%;color:var(--text);font-family:var(--display);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 0 5px rgba(245,184,61,.18)}
+
 @media (max-width:760px){
-  .panel{top:auto;bottom:0;left:0;right:0;width:100%;max-width:100%;height:46vh;border-radius:14px 14px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .panel{top:auto;bottom:0;left:0;right:0;width:100%;max-width:100%;height:50vh;border-radius:18px 18px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
   .basemap{right:12px;top:calc(12px + env(safe-area-inset-top,0px))}
-  .stat.big .v{font-size:24px}
+  .hero .v{font-size:44px}
+  h1{font-size:21px}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
@@ -125,31 +165,48 @@ details .val{margin-top:6px}
 </div>
 
 <aside class="panel" aria-label="Ringkasan dan filter">
-  <div class="panel-head">
+  <div class="sec head">
     <h1>Sebaran kejadian tumpahan minyak di Indonesia</h1>
-    <p class="sub" id="sub">Memuat data…</p>
+    <p class="status-line"><span class="live" aria-hidden="true"></span><span id="sub">Memuat data…</span></p>
   </div>
-  <div class="stats">
-    <div class="stat big"><div class="v" id="s-n">–</div><div class="l">kejadian tercatat</div></div>
-    <div class="stat"><div class="v" id="s-kar">–</div><div class="l">potensi kerusakan terumbu karang (ha)</div></div>
-    <div class="stat"><div class="v" id="s-lam">–</div><div class="l">potensi kerusakan padang lamun (ha)</div></div>
-    <div class="stat" style="grid-column:1/-1"><div class="v" id="s-man">–</div><div class="l">potensi kerusakan mangrove (ha)</div></div>
+
+  <div class="sec">
+    <div class="hero"><span class="v" id="s-n">–</span><span class="l">kejadian tercatat</span></div>
+    <div class="eco-stats">
+      <div><b id="s-kar">–</b><span>terumbu karang</span></div>
+      <div><b id="s-lam">–</b><span>padang lamun</span></div>
+      <div><b id="s-man">–</b><span>mangrove</span></div>
+    </div>
+    <p class="eco-note">Potensi kerusakan ekosistem, dalam hektare</p>
   </div>
-  <div class="years">
-    <div class="years-head"><span>Kejadian per tahun</span><span id="year-hint">klik batang untuk memfilter</span></div>
+
+  <div class="sec">
+    <div class="sec-h"><span>Kejadian per tahun</span><span class="aside">klik batang untuk memfilter</span></div>
     <div class="bars" id="bars" role="group" aria-label="Filter tahun"></div>
     <div class="bar-lbl" id="bar-lbl" aria-hidden="true"></div>
   </div>
-  <div class="filters">
-    <label>Tahun<select id="f-tahun"><option value="">Semua tahun</option></select></label>
-    <label>Provinsi<select id="f-prov"><option value="">Semua provinsi</option></select></label>
-    <label class="wide">Kategori penyebab<select id="f-kat"><option value="">Semua kategori</option></select></label>
-    <button type="button" class="reset" id="reset" hidden>Hapus filter</button>
+
+  <div class="sec">
+    <div class="sec-h"><span>Filter</span><button type="button" class="link-btn" id="reset" hidden>Hapus filter</button></div>
+    <div class="filters">
+      <label>Tahun<select id="f-tahun"><option value="">Semua tahun</option></select></label>
+      <label>Provinsi<select id="f-prov"><option value="">Semua provinsi</option></select></label>
+      <label class="wide">Kategori penyebab<select id="f-kat"><option value="">Semua kategori</option></select></label>
+    </div>
   </div>
-  <div class="legend" id="legend" aria-label="Kategori penyebab"></div>
-  <div class="list" id="list" aria-label="Daftar kejadian"></div>
-  <div class="foot">
-    <div class="row"><span id="updated">–</span><button type="button" id="reload">Muat ulang data</button></div>
+
+  <div class="sec">
+    <div class="sec-h"><span>Kategori penyebab</span></div>
+    <div class="legend" id="legend" aria-label="Kategori penyebab"></div>
+  </div>
+
+  <div class="sec list-sec">
+    <div class="sec-h"><span>Daftar kejadian</span><span class="aside" id="list-n"></span></div>
+    <div id="list" aria-label="Daftar kejadian"></div>
+  </div>
+
+  <div class="sec foot">
+    <div class="row"><span id="updated">–</span><button type="button" class="ghost" id="reload">Muat ulang data</button></div>
     Potensi kerusakan dihitung dari luas ekosistem di sekitar lokasi kejadian dan dijumlahkan antar kejadian, sehingga bukan luas kerusakan terverifikasi. Sumber: berita, laporan instansi, dan perhitungan data sekunder.
   </div>
 </aside>
@@ -192,7 +249,7 @@ document.getElementById("bm-dark").onclick=()=>setBase("dark");
 
 const cluster = L.markerClusterGroup({
   showCoverageOnHover:false,maxClusterRadius:45,spiderfyOnMaxZoom:true,
-  iconCreateFunction:c=>{const n=c.getChildCount();const s=n<5?34:n<15?42:50;
+  iconCreateFunction:c=>{const n=c.getChildCount();const s=n<5?36:n<15?44:52;
     return L.divIcon({html:"<div class='marker-cluster-custom' style='width:"+s+"px;height:"+s+"px'>"+n+"</div>",className:"",iconSize:[s,s]});}
 });
 map.addLayer(cluster);
@@ -222,8 +279,8 @@ function popupHTML(r){
   const eco=[["Terumbu karang",r.kar],["Padang lamun",r.lam],["Mangrove",r.man]];
   const hasEco=eco.some(e=>e[1]!==null);
   const f=(k,v)=>clean(v)?"<div class='f'><div class='k'>"+k+"</div><div class='val'>"+esc(clean(v))+"</div></div>":"";
-  let h="<div class='pop'><div class='pop-head'>";
-  h+="<span class='cat' style='background:"+col+"26;color:"+col+"'><span style='width:8px;height:8px;border-radius:50%;background:"+col+"'></span>"+esc(r.kat||"Tidak diketahui")+"</span>";
+  let h="<div class='pop'><div class='pop-head' style='--cat:"+col+"'>";
+  h+="<span class='cat' style='background:"+col+"24;color:"+col+"'><span style='width:8px;height:8px;border-radius:50%;background:"+col+"'></span>"+esc(r.kat||"Tidak diketahui")+"</span>";
   h+="<h2>"+esc(r.lokasi)+"</h2><div class='m'>"+esc([r.prov,r.tanggal].filter(Boolean).join(", "))+"</div></div><div class='pop-body'>";
   h+=f("Pihak yang terkait",r.pihak);
   h+=f("Volume tumpahan",r.volume);
@@ -278,7 +335,7 @@ function renderYears(){
     const b=document.createElement("button");b.type="button";
     b.className="bar"+(cur===y?" on":"")+(cur&&cur!==y?" dim":"");
     b.title=y+": "+n+" kejadian";b.setAttribute("aria-label",y+", "+n+" kejadian");b.setAttribute("aria-pressed",cur===y);
-    b.innerHTML="<i style='height:"+(n?Math.max(6,n/max*100):0)+"%'></i>";
+    b.innerHTML="<b>"+n+"</b><i style='height:"+(n?Math.max(6,n/max*82):0)+"%'></i>";
     b.disabled=!n&&cur!==y;
     b.onclick=()=>{sel("tahun").value=(cur===y?"":y);update(true);};
     bars.appendChild(b);
@@ -302,7 +359,7 @@ function renderLegend(){
 
 function styleMarker(id,big){
   const m=markers.get(id);if(!m)return;
-  m.setStyle({radius:big?13:8,weight:big?3:1.5});
+  m.setStyle({radius:big?12:8,weight:big?3:2,color:big?"#F5B83D":"#061820"});
   if(big)m.bringToFront();
 }
 function setActive(id,scroll){
@@ -316,7 +373,7 @@ function setActive(id,scroll){
 
 function fitTo(list){
   const pts=list.filter(r=>r.ll).map(r=>r.ll);if(!pts.length)return;
-  const opt=isWide()?{paddingTopLeft:[400,60],paddingBottomRight:[60,60],maxZoom:9}:{paddingTopLeft:[30,60],paddingBottomRight:[30,window.innerHeight*0.48],maxZoom:9};
+  const opt=isWide()?{paddingTopLeft:[430,90],paddingBottomRight:[80,70],maxZoom:9}:{paddingTopLeft:[30,60],paddingBottomRight:[30,window.innerHeight*0.48],maxZoom:9};
   map.fitBounds(pts,opt);
 }
 
@@ -326,8 +383,8 @@ function render(fit){
   cluster.clearLayers();markers.clear();items.clear();
   list.forEach(r=>{
     if(!r.ll)return;
-    const m=L.circleMarker(r.ll,{radius:8,color:"#fff",weight:1.5,fillColor:colorOf(r.kat),fillOpacity:.95});
-    m.bindPopup(popupHTML(r),{maxWidth:360,autoPanPaddingTopLeft:isWide()?[400,40]:[20,40],autoPanPaddingBottomRight:[40,40]});
+    const m=L.circleMarker(r.ll,{radius:8,color:"#061820",weight:2,fillColor:colorOf(r.kat),fillOpacity:1});
+    m.bindPopup(popupHTML(r),{maxWidth:360,autoPanPaddingTopLeft:isWide()?[430,70]:[20,70],autoPanPaddingBottomRight:[40,40]});
     m.bindTooltip(esc(r.lokasi),{direction:"top",offset:[0,-6]});
     m.on("click",()=>setActive(r.id,true));
     m.on("popupclose",()=>{if(activeId===r.id)setActive(null);});
@@ -340,7 +397,8 @@ function render(fit){
   document.getElementById("s-man").textContent=fmt(sum("man"));
   const noMap=list.filter(r=>!r.ll).length;
   const active=Object.keys(F).filter(k=>val(k)).map(k=>val(k));
-  document.getElementById("sub").textContent=list.length+" kejadian"+(active.length?" untuk "+active.join(", "):" ditampilkan")+(noMap?"; "+noMap+" belum memiliki koordinat":"");
+  document.getElementById("sub").textContent=(active.length?"Menampilkan "+active.join(", "):"Semua kejadian")+(noMap?", "+noMap+" tanpa koordinat":"");
+  document.getElementById("list-n").textContent=list.length+" kejadian";
   const el=document.getElementById("list");el.innerHTML="";
   list.slice().sort((a,b)=>(+b.tahun||0)-(+a.tahun||0)||a.id-b.id).forEach(r=>{
     const b=document.createElement("button");b.type="button";b.className="item"+(r.ll?"":" nomap");
@@ -372,7 +430,7 @@ function load(first){
       }));
       if(!rows.length){st.hidden=false;st.textContent="Data kosong. Pastikan Sheet1 sudah dipublikasikan sebagai CSV.";return;}
       st.hidden=true;
-      document.getElementById("updated").textContent="Data dimuat "+new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
+      document.getElementById("updated").textContent="Data diperbarui pukul "+new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
       refreshSelects();render(first);
     })
     .catch(err=>{console.error(err);st.hidden=false;st.textContent="Data gagal dimuat ("+err.message+"). Periksa koneksi, lalu klik Muat ulang data.";});
