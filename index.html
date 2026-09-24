@@ -375,6 +375,10 @@ const CATS = {
   "Kapal (tidak dirinci)":{v:"--c-kapal",ic:"ti-sailboat"},
   "Tidak diketahui":{v:"--c-tidak",ic:"ti-help"}
 };
+const catKey = s => String(s ?? "").toLowerCase().replace(/\s*\/\s*/g,"/").replace(/\s+/g," ").trim();
+const CAT_LOOKUP = Object.fromEntries(Object.keys(CATS).map(k=>[catKey(k),k]));
+function normKat(s){const k=catKey(s);if(!k)return "Tidak diketahui";return CAT_LOOKUP[k]||String(s).trim().replace(/\s+/g," ");}
+const allCats = () => [...Object.keys(CATS),...[...new Set(rows.map(r=>r.kat))].filter(c=>!CATS[c]).sort((a,b)=>a.localeCompare(b,"id"))];
 const css = getComputedStyle(document.documentElement);
 const cv = n => css.getPropertyValue(n).trim();
 const colorOf = k => cv((CATS[k]||CATS["Tidak diketahui"]).v) || "#A3B4BC";
@@ -549,7 +553,7 @@ function updateCharts(){
   chYear.update();
 
   const pC=rows.filter(r=>match(r,"kat")),ck=val("kat");
-  const cats=Object.keys(CATS).map(c=>[c,pC.filter(r=>r.kat===c).length]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]);
+  const cats=allCats().map(c=>[c,pC.filter(r=>r.kat===c).length]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]);
   catLabels=cats.map(x=>x[0]);
   chCat.data.labels=catLabels;
   chCat.data.datasets[0].data=cats.map(x=>x[1]);
@@ -615,7 +619,7 @@ function render(fit){
 
   // legend
   const pK=rows.filter(r=>match(r,"kat")),ck=val("kat"),lg=document.getElementById("legend");lg.innerHTML="";
-  Object.keys(CATS).forEach(c=>{const n=pK.filter(r=>r.kat===c).length;if(!n)return;
+  allCats().forEach(c=>{const n=pK.filter(r=>r.kat===c).length;if(!n)return;
     const b=document.createElement("button");b.type="button";b.className="chip"+(ck===c?" on":"")+(ck&&ck!==c?" off":"");
     b.setAttribute("aria-pressed",ck===c);
     b.innerHTML="<span class='dot' style='background:"+colorOf(c)+"'></span>"+esc(c)+" <span class='n'>"+n+"</span>";
@@ -636,7 +640,7 @@ function load(first){
       const res=Papa.parse(text,{header:true,skipEmptyLines:true});
       rows=res.data.filter(r=>clean(r["ID"])&&clean(r["Lokasi"])).map(r=>{const tahun=clean(r["Tahun"]);return{
         id:+num(r["ID"]),lokasi:clean(r["Lokasi"]),prov:clean(r["Provinsi"]),tanggal:clean(r["Tanggal"]),tahun,
-        kat:clean(r["Kategori Penyebab"])||"Tidak diketahui",pihak:r["Pihak yang terkait"],volume:r["Volume Tumpahan"],
+        kat:normKat(r["Kategori Penyebab"]),pihak:r["Pihak yang terkait"],volume:r["Volume Tumpahan"],
         ekosistem:r["Ekosistem Terdampak"],penanganan:r["Penanganan"],sumber:r["Sumber"],links:urls(r["Link"]),ll:coords(r),
         dk:dateKey(r["Tanggal"],+tahun),
         kar:num(r["Potensi Luas Terumbu Karang Terdampak (ha)"]),lam:num(r["Potensi Luas Padang Lamun Terdampak (ha)"]),man:num(r["Potensi Luas Mangrove Terdampak (ha)"])};});
