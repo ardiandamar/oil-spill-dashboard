@@ -86,13 +86,21 @@ select option{background:var(--bg)}
 .link-btn{background:none;border:0;padding:0;color:var(--boom);font-size:12.5px;cursor:pointer}
 .link-btn[hidden]{display:none}
 .link-btn:hover{text-decoration:underline}
-.map-legend{background:rgba(4,18,26,.9);border:1px solid var(--line-2);border-radius:12px;padding:10px 10px 8px;min-width:190px;backdrop-filter:blur(6px);color:var(--text);font-family:var(--body)}
-.map-legend .lg-h{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);margin:0 4px 6px}
-.map-legend .lg-h button{background:none;border:0;padding:0;color:var(--muted);cursor:pointer;font-size:15px;line-height:1}
-.map-legend.min .legend{display:none}
-.map-legend.min .lg-h{margin-bottom:0}
-.legend{display:flex;flex-direction:column;gap:2px}
-.map-legend .chip{width:100%;justify-content:flex-start;border:1px solid transparent;border-radius:8px;padding:4px 6px;font-size:12px}
+.map-legend{color:var(--text);font-family:var(--body)}
+.lg-btn{display:inline-flex;align-items:center;gap:7px;background:rgba(4,18,26,.92);border:1px solid var(--line-2);border-radius:999px;padding:7px 12px 7px 10px;font-size:12.5px;cursor:pointer;backdrop-filter:blur(6px)}
+.lg-btn:hover{background:var(--card-2)}
+.lg-btn i{font-size:16px;color:var(--boom)}
+.lg-btn .lg-dot{width:9px;height:9px;border-radius:50%;display:none}
+.lg-btn .lg-dot.on{display:inline-block}
+.lg-panel{background:rgba(4,18,26,.92);border:1px solid var(--line-2);border-radius:12px;padding:8px 8px 6px;min-width:176px;backdrop-filter:blur(6px)}
+.map-legend.collapsed .lg-panel{display:none}
+.map-legend:not(.collapsed) .lg-btn{display:none}
+.lg-h{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin:0 4px 4px}
+.lg-h button{background:none;border:0;padding:0 2px;color:var(--muted);cursor:pointer;font-size:16px;line-height:1}
+.lg-h button:hover{color:var(--text)}
+.legend{display:flex;flex-direction:column;gap:1px}
+.map-legend .chip{width:100%;justify-content:flex-start;border:1px solid transparent;border-radius:7px;padding:3px 6px;font-size:11.5px;gap:6px}
+.map-legend .chip .dot{width:8px;height:8px}
 .map-legend .chip .n{margin-left:auto;padding-left:10px}
 .map-legend .chip:hover{background:rgba(214,236,242,.06)}
 .map-legend .chip.on{background:var(--card-2);border-color:var(--line-2)}
@@ -166,22 +174,23 @@ select option{background:var(--bg)}
 .leaflet-tooltip-top:before{border-top-color:var(--bg)}
 .leaflet-popup-content-wrapper{background:var(--bg);color:var(--text);border-radius:16px;border:1px solid var(--line-2);box-shadow:0 12px 40px rgba(0,0,0,.5);padding:0;overflow:hidden}
 .leaflet-popup-tip{background:var(--bg)}
-.leaflet-popup-content{margin:0;width:300px!important;max-width:calc(100vw - 60px);font-family:var(--body)}
-.leaflet-container a.leaflet-popup-close-button{color:var(--muted);top:10px;right:10px;font-size:20px}
-.pop{max-height:min(420px,60vh);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(141,169,180,.35) transparent}
-.pop-head{padding:12px 16px 10px;border-top:3px solid var(--cat)}
-.pop-head h3{font-family:var(--display);font-size:15.5px;font-weight:700;letter-spacing:-.005em;line-height:1.25;margin:6px 22px 2px 0}
-.pop-head .m{color:var(--muted);font-size:12px}
+.leaflet-popup-content{margin:0;width:260px!important;max-width:calc(100vw - 60px);font-family:var(--body)}
+.leaflet-container a.leaflet-popup-close-button{color:var(--muted);top:8px;right:8px;font-size:18px}
+.pop{max-height:min(320px,55vh);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(141,169,180,.35) transparent}
+.pop-head{padding:10px 14px 8px;border-top:3px solid var(--cat)}
+.pop-head h3{font-family:var(--display);font-size:14px;font-weight:700;letter-spacing:-.005em;line-height:1.25;margin:5px 20px 1px 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pop-head .m{color:var(--muted);font-size:11.5px}
 .cat{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px}
-.pop-body{padding:0 16px 12px}
-.f{padding:7px 0;border-top:1px solid var(--line)}
-.f .k{color:var(--muted);font-size:11.5px;margin-bottom:3px}
-.f .val{font-size:12.5px;white-space:pre-line;line-height:1.45}
+.pop-body{padding:0 14px 10px}
+.f{padding:6px 0;border-top:1px solid var(--line)}
+.f .k{color:var(--muted);font-size:10.5px;margin-bottom:1px;text-transform:uppercase;letter-spacing:.03em}
+.f .val{font-size:12px;white-space:pre-line;line-height:1.4}
+.f .val.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal}
 .eco{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
-.eco div{background:var(--card-2);border-radius:8px;padding:6px 8px}
-.eco b{display:block;font-family:var(--display);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
-.eco span{font-size:11px;color:var(--muted)}
-details summary{cursor:pointer;color:var(--boom);font-size:12.5px;font-weight:500}
+.eco div{background:var(--card-2);border-radius:7px;padding:5px 7px}
+.eco b{display:block;font-family:var(--display);font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.eco span{font-size:10.5px;color:var(--muted)}
+details summary{cursor:pointer;color:var(--boom);font-size:12px;font-weight:500}
 details .f:first-of-type{margin-top:6px}
 details .val{margin-top:8px}
 .links a{color:var(--boom);display:block;font-size:12.5px;word-break:break-all;margin-top:3px}
@@ -454,15 +463,19 @@ const cluster = L.markerClusterGroup({showCoverageOnHover:false,maxClusterRadius
     return L.divIcon({html:"<div class='marker-cluster-custom' style='width:"+s+"px;height:"+s+"px'>"+n+"</div>",className:"",iconSize:[s,s]});}});
 map.addLayer(cluster);
 const LegendCtl=L.Control.extend({options:{position:"bottomleft"},onAdd(){
-  const d=L.DomUtil.create("div","map-legend");
-  d.innerHTML="<div class='lg-h'><span>Kategori penyebab</span><button type='button' id='lg-toggle' aria-label='Sembunyikan legenda' aria-expanded='true'>&minus;</button></div><div class='legend' id='legend' role='group' aria-label='Filter kategori penyebab'></div>";
+  const d=L.DomUtil.create("div","map-legend collapsed");
+  d.innerHTML="<button type='button' class='lg-btn' id='lg-open' aria-expanded='false' aria-controls='lg-panel'><i class='ti ti-list-details' aria-hidden='true'></i><span>Legenda</span><span class='lg-dot' id='lg-dot' aria-hidden='true'></span></button>"
+   +"<div class='lg-panel' id='lg-panel'><div class='lg-h'><span>Kategori penyebab</span><button type='button' id='lg-close' aria-label='Tutup legenda'>&times;</button></div><div class='legend' id='legend' role='group' aria-label='Filter kategori penyebab'></div></div>";
   L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);
-  d.querySelector("#lg-toggle").onclick=e=>{const min=d.classList.toggle("min");legendUserMin=min;e.currentTarget.innerHTML=min?"+":"&minus;";e.currentTarget.setAttribute("aria-expanded",!min);e.currentTarget.setAttribute("aria-label",min?"Tampilkan legenda":"Sembunyikan legenda");};
+  d.querySelector("#lg-open").onclick=()=>setLegend(true);
+  d.querySelector("#lg-close").onclick=()=>setLegend(false);
   return d;}});
 new LegendCtl().addTo(map);
-let legendUserMin=false;
-function legendAuto(open){const d=document.querySelector(".map-legend");if(!d||legendUserMin)return;
-  d.classList.toggle("min",open);const b=d.querySelector("#lg-toggle");b.innerHTML=open?"+":"&minus;";b.setAttribute("aria-expanded",!open);}
+let legendOpen=false,legendBeforePopup=false;
+function setLegend(open){const d=document.querySelector(".map-legend");if(!d)return;legendOpen=open;
+  d.classList.toggle("collapsed",!open);d.querySelector("#lg-open").setAttribute("aria-expanded",open);
+  if(open)d.querySelector("#lg-close").focus({preventScroll:true});}
+function legendAuto(popupOpen){if(popupOpen){legendBeforePopup=legendOpen;if(legendOpen)setLegend(false);}else if(legendBeforePopup){setLegend(true);legendBeforePopup=false;}}
 
 /* ---------- data helpers ---------- */
 let rows=[], markers=new Map();
@@ -512,13 +525,14 @@ function refreshSelects(){
 /* ---------- popup ---------- */
 function popupHTML(r){
   const col=colorOf(r.kat);
-  const eco=[["Terumbu karang",r.kar],["Padang lamun",r.lam],["Mangrove",r.man]];
+  const eco=[["Karang",r.kar],["Lamun",r.lam],["Mangrove",r.man]];
   const f=(k,v)=>clean(v)?"<div class='f'><div class='k'>"+k+"</div><div class='val'>"+esc(clean(v))+"</div></div>":"";
   let h="<div class='pop'><div class='pop-head' style='--cat:"+col+"'>";
   h+="<span class='cat' style='background:"+col+"24;color:"+col+"'><i class='ti "+iconOf(r.kat)+"' aria-hidden='true'></i>"+esc(r.kat)+"</span>";
   h+="<h3>"+esc(r.lokasi)+"</h3><div class='m'>"+esc([r.prov,r.tanggal].filter(Boolean).join(", "))+"</div></div><div class='pop-body'>";
-  h+=f("Pihak yang terkait",r.pihak)+f("Volume tumpahan",r.volume);
-  if(eco.some(e=>e[1]!==null)){h+="<div class='f'><div class='k'>Potensi kerusakan ekosistem (ha)</div><div class='eco'>";
+  const fc=(k,v)=>clean(v)?"<div class='f'><div class='k'>"+k+"</div><div class='val clamp' title='"+esc(clean(v))+"'>"+esc(clean(v))+"</div></div>":"";
+  h+=fc("Pihak terkait",r.pihak)+fc("Volume",r.volume);
+  if(eco.some(e=>e[1]!==null)){h+="<div class='f'><div class='k'>Potensi kerusakan (ha)</div><div class='eco'>";
     eco.forEach(e=>{h+="<div><b>"+(e[1]===null?"–":fmt(e[1]))+"</b><span>"+e[0]+"</span></div>";});h+="</div></div>";}
   let more=f("Ekosistem terdampak",r.ekosistem)+f("Penanganan",r.penanganan);
   if(clean(r.sumber)||r.links.length){more+="<div class='f'><div class='k'>Sumber</div><div class='val'>"+esc(clean(r.sumber))+"</div><div class='links'>";
@@ -592,10 +606,10 @@ function render(fit){
   cluster.clearLayers();markers.clear();
   list.forEach(r=>{if(!r.ll)return;
     const m=L.circleMarker(r.ll,{radius:8,color:"#04121A",weight:2,fillColor:colorOf(r.kat),fillOpacity:1});
-    m.bindPopup(popupHTML(r),{maxWidth:320,autoPanPaddingTopLeft:[20,20],autoPanPaddingBottomRight:[60,20]});
+    m.bindPopup(popupHTML(r),{maxWidth:280,autoPanPaddingTopLeft:[20,20],autoPanPaddingBottomRight:[60,20]});
     m.bindTooltip(esc(r.lokasi),{direction:"top",offset:[0,-6]});
     m.on("popupopen",e=>{m.setStyle({radius:12,weight:3,color:cv("--boom")});
-      const p=e.popup.getElement().querySelector(".pop");if(p)p.style.maxHeight=Math.max(180,Math.min(420,map.getSize().y-70))+"px";
+      const p=e.popup.getElement().querySelector(".pop");if(p)p.style.maxHeight=Math.max(160,Math.min(320,map.getSize().y-80))+"px";
       e.popup.update();legendAuto(true);});
     m.on("popupclose",()=>{m.setStyle({radius:8,weight:2,color:"#04121A"});legendAuto(false);});
     cluster.addLayer(m);markers.set(r.id,m);});
@@ -645,6 +659,7 @@ function render(fit){
     b.setAttribute("aria-pressed",ck===c);
     b.innerHTML="<span class='dot' style='background:"+colorOf(c)+"'></span>"+esc(c)+" <span class='n'>"+n+"</span>";
     b.onclick=()=>setF("kat",c);lg.appendChild(b);});
+  const dot=document.getElementById("lg-dot");if(dot){dot.classList.toggle("on",!!ck);if(ck)dot.style.background=colorOf(ck);}
 
   updateCharts();
   if(fit){const pts=list.filter(r=>r.ll).map(r=>r.ll);if(pts.length)map.fitBounds(pts,{padding:[50,50],maxZoom:9});}
