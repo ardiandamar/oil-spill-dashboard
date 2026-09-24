@@ -86,7 +86,16 @@ select option{background:var(--bg)}
 .link-btn{background:none;border:0;padding:0;color:var(--boom);font-size:12.5px;cursor:pointer}
 .link-btn[hidden]{display:none}
 .link-btn:hover{text-decoration:underline}
-.legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.map-legend{background:rgba(4,18,26,.9);border:1px solid var(--line-2);border-radius:12px;padding:10px 10px 8px;min-width:190px;backdrop-filter:blur(6px);color:var(--text);font-family:var(--body)}
+.map-legend .lg-h{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);margin:0 4px 6px}
+.map-legend .lg-h button{background:none;border:0;padding:0;color:var(--muted);cursor:pointer;font-size:15px;line-height:1}
+.map-legend.min .legend{display:none}
+.map-legend.min .lg-h{margin-bottom:0}
+.legend{display:flex;flex-direction:column;gap:2px}
+.map-legend .chip{width:100%;justify-content:flex-start;border:1px solid transparent;border-radius:8px;padding:4px 6px;font-size:12px}
+.map-legend .chip .n{margin-left:auto;padding-left:10px}
+.map-legend .chip:hover{background:rgba(214,236,242,.06)}
+.map-legend .chip.on{background:var(--card-2);border-color:var(--line-2)}
 .chip{display:inline-flex;align-items:center;gap:7px;font-size:12px;padding:5px 10px 5px 9px;border-radius:999px;border:1px solid var(--line);background:transparent;cursor:pointer}
 .chip:hover{border-color:var(--line-2)}
 .chip .dot{width:9px;height:9px;border-radius:50%}
@@ -307,7 +316,6 @@ details .val{margin-top:8px}
       <label>Tahun<select id="f-tahun"><option value="">Semua tahun</option></select></label>
       <label>Provinsi<select id="f-prov"><option value="">Semua provinsi</option></select></label>
       <label>Kategori penyebab<select id="f-kat"><option value="">Semua kategori</option></select></label>
-      <div class="legend" id="legend" aria-label="Kategori penyebab"></div>
     </div>
   </section>
 
@@ -444,6 +452,13 @@ const cluster = L.markerClusterGroup({showCoverageOnHover:false,maxClusterRadius
   iconCreateFunction:c=>{const n=c.getChildCount();const s=n<5?36:n<15?44:52;
     return L.divIcon({html:"<div class='marker-cluster-custom' style='width:"+s+"px;height:"+s+"px'>"+n+"</div>",className:"",iconSize:[s,s]});}});
 map.addLayer(cluster);
+const LegendCtl=L.Control.extend({options:{position:"bottomleft"},onAdd(){
+  const d=L.DomUtil.create("div","map-legend");
+  d.innerHTML="<div class='lg-h'><span>Kategori penyebab</span><button type='button' id='lg-toggle' aria-label='Sembunyikan legenda' aria-expanded='true'>&minus;</button></div><div class='legend' id='legend' role='group' aria-label='Filter kategori penyebab'></div>";
+  L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);
+  d.querySelector("#lg-toggle").onclick=e=>{const min=d.classList.toggle("min");e.currentTarget.innerHTML=min?"+":"&minus;";e.currentTarget.setAttribute("aria-expanded",!min);e.currentTarget.setAttribute("aria-label",min?"Tampilkan legenda":"Sembunyikan legenda");};
+  return d;}});
+new LegendCtl().addTo(map);
 
 /* ---------- data helpers ---------- */
 let rows=[], markers=new Map();
