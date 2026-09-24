@@ -166,22 +166,23 @@ select option{background:var(--bg)}
 .leaflet-tooltip-top:before{border-top-color:var(--bg)}
 .leaflet-popup-content-wrapper{background:var(--bg);color:var(--text);border-radius:16px;border:1px solid var(--line-2);box-shadow:0 12px 40px rgba(0,0,0,.5);padding:0;overflow:hidden}
 .leaflet-popup-tip{background:var(--bg)}
-.leaflet-popup-content{margin:0;width:350px!important;max-width:calc(100vw - 60px);font-family:var(--body)}
+.leaflet-popup-content{margin:0;width:300px!important;max-width:calc(100vw - 60px);font-family:var(--body)}
 .leaflet-container a.leaflet-popup-close-button{color:var(--muted);top:10px;right:10px;font-size:20px}
-.pop{max-height:min(460px,60vh);overflow-y:auto;scrollbar-width:thin}
-.pop-head{padding:18px 20px 14px;border-top:4px solid var(--cat)}
-.pop-head h3{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.01em;line-height:1.2;margin:8px 26px 4px 0}
-.pop-head .m{color:var(--muted);font-size:12.5px}
-.cat{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px}
-.pop-body{padding:4px 20px 16px}
-.f{padding:10px 0;border-top:1px solid var(--line)}
+.pop{max-height:min(420px,60vh);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(141,169,180,.35) transparent}
+.pop-head{padding:12px 16px 10px;border-top:3px solid var(--cat)}
+.pop-head h3{font-family:var(--display);font-size:15.5px;font-weight:700;letter-spacing:-.005em;line-height:1.25;margin:6px 22px 2px 0}
+.pop-head .m{color:var(--muted);font-size:12px}
+.cat{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px}
+.pop-body{padding:0 16px 12px}
+.f{padding:7px 0;border-top:1px solid var(--line)}
 .f .k{color:var(--muted);font-size:11.5px;margin-bottom:3px}
-.f .val{font-size:13px;white-space:pre-line;line-height:1.5}
+.f .val{font-size:12.5px;white-space:pre-line;line-height:1.45}
 .eco{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
-.eco div{background:var(--card-2);border-radius:9px;padding:8px 9px}
-.eco b{display:block;font-family:var(--display);font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.eco div{background:var(--card-2);border-radius:8px;padding:6px 8px}
+.eco b{display:block;font-family:var(--display);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
 .eco span{font-size:11px;color:var(--muted)}
-details summary{cursor:pointer;color:var(--boom);font-size:13px;font-weight:500}
+details summary{cursor:pointer;color:var(--boom);font-size:12.5px;font-weight:500}
+details .f:first-of-type{margin-top:6px}
 details .val{margin-top:8px}
 .links a{color:var(--boom);display:block;font-size:12.5px;word-break:break-all;margin-top:3px}
 .marker-cluster-custom{background:rgba(4,18,26,.9);border:2px solid var(--boom);border-radius:50%;color:var(--text);font-family:var(--display);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 0 5px rgba(245,184,61,.18)}
@@ -456,9 +457,12 @@ const LegendCtl=L.Control.extend({options:{position:"bottomleft"},onAdd(){
   const d=L.DomUtil.create("div","map-legend");
   d.innerHTML="<div class='lg-h'><span>Kategori penyebab</span><button type='button' id='lg-toggle' aria-label='Sembunyikan legenda' aria-expanded='true'>&minus;</button></div><div class='legend' id='legend' role='group' aria-label='Filter kategori penyebab'></div>";
   L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);
-  d.querySelector("#lg-toggle").onclick=e=>{const min=d.classList.toggle("min");e.currentTarget.innerHTML=min?"+":"&minus;";e.currentTarget.setAttribute("aria-expanded",!min);e.currentTarget.setAttribute("aria-label",min?"Tampilkan legenda":"Sembunyikan legenda");};
+  d.querySelector("#lg-toggle").onclick=e=>{const min=d.classList.toggle("min");legendUserMin=min;e.currentTarget.innerHTML=min?"+":"&minus;";e.currentTarget.setAttribute("aria-expanded",!min);e.currentTarget.setAttribute("aria-label",min?"Tampilkan legenda":"Sembunyikan legenda");};
   return d;}});
 new LegendCtl().addTo(map);
+let legendUserMin=false;
+function legendAuto(open){const d=document.querySelector(".map-legend");if(!d||legendUserMin)return;
+  d.classList.toggle("min",open);const b=d.querySelector("#lg-toggle");b.innerHTML=open?"+":"&minus;";b.setAttribute("aria-expanded",!open);}
 
 /* ---------- data helpers ---------- */
 let rows=[], markers=new Map();
@@ -516,10 +520,10 @@ function popupHTML(r){
   h+=f("Pihak yang terkait",r.pihak)+f("Volume tumpahan",r.volume);
   if(eco.some(e=>e[1]!==null)){h+="<div class='f'><div class='k'>Potensi kerusakan ekosistem (ha)</div><div class='eco'>";
     eco.forEach(e=>{h+="<div><b>"+(e[1]===null?"–":fmt(e[1]))+"</b><span>"+e[0]+"</span></div>";});h+="</div></div>";}
-  h+=f("Ekosistem terdampak",r.ekosistem);
-  if(clean(r.penanganan))h+="<div class='f'><details><summary>Lihat penanganan</summary><div class='val'>"+esc(clean(r.penanganan))+"</div></details></div>";
-  if(clean(r.sumber)||r.links.length){h+="<div class='f'><div class='k'>Sumber</div><div class='val'>"+esc(clean(r.sumber))+"</div><div class='links'>";
-    r.links.forEach(u=>{h+="<a href='"+esc(u)+"' target='_blank' rel='noopener'>"+esc(u.replace(/^https?:\/\//,"").slice(0,60))+"</a>";});h+="</div></div>";}
+  let more=f("Ekosistem terdampak",r.ekosistem)+f("Penanganan",r.penanganan);
+  if(clean(r.sumber)||r.links.length){more+="<div class='f'><div class='k'>Sumber</div><div class='val'>"+esc(clean(r.sumber))+"</div><div class='links'>";
+    r.links.forEach(u=>{more+="<a href='"+esc(u)+"' target='_blank' rel='noopener'>"+esc(u.replace(/^https?:\/\//,"").slice(0,55))+"</a>";});more+="</div></div>";}
+  if(more)h+="<div class='f'><details><summary>Detail lainnya</summary>"+more+"</details></div>";
   return h+"</div></div>";
 }
 function focusEvent(id){
@@ -543,9 +547,9 @@ function initCharts(){
       onClick:(e,els)=>{if(els.length)setF("tahun",yearLabels[els[0].index]);},
       onHover:(e,els)=>{e.native.target.style.cursor=els.length?"pointer":"default";}}});
   chCat=new Chart(document.getElementById("ch-cat"),{type:"bar",
-    data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:5,barThickness:16}]},
+    data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:4,barPercentage:.8,categoryPercentage:.85,maxBarThickness:16}]},
     options:{indexAxis:"y",maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>c.parsed.x+" kejadian"}}},
-      scales:{x:{beginAtZero:true,ticks:{precision:0},grid},y:{grid:{display:false},ticks:{color:cv("--text")}}},
+      scales:{x:{beginAtZero:true,ticks:{precision:0},grid},y:{grid:{display:false},ticks:{color:cv("--text"),autoSkip:false,font:{size:11}}}},
       onClick:(e,els)=>{if(els.length)setF("kat",catLabels[els[0].index]);},
       onHover:(e,els)=>{e.native.target.style.cursor=els.length?"pointer":"default";}}});
   chEco=new Chart(document.getElementById("ch-eco"),{type:"bar",
@@ -588,10 +592,12 @@ function render(fit){
   cluster.clearLayers();markers.clear();
   list.forEach(r=>{if(!r.ll)return;
     const m=L.circleMarker(r.ll,{radius:8,color:"#04121A",weight:2,fillColor:colorOf(r.kat),fillOpacity:1});
-    m.bindPopup(popupHTML(r),{maxWidth:360,autoPanPadding:[40,60]});
+    m.bindPopup(popupHTML(r),{maxWidth:320,autoPanPaddingTopLeft:[20,20],autoPanPaddingBottomRight:[60,20]});
     m.bindTooltip(esc(r.lokasi),{direction:"top",offset:[0,-6]});
-    m.on("popupopen",()=>m.setStyle({radius:12,weight:3,color:cv("--boom")}));
-    m.on("popupclose",()=>m.setStyle({radius:8,weight:2,color:"#04121A"}));
+    m.on("popupopen",e=>{m.setStyle({radius:12,weight:3,color:cv("--boom")});
+      const p=e.popup.getElement().querySelector(".pop");if(p)p.style.maxHeight=Math.max(180,Math.min(420,map.getSize().y-70))+"px";
+      e.popup.update();legendAuto(true);});
+    m.on("popupclose",()=>{m.setStyle({radius:8,weight:2,color:"#04121A"});legendAuto(false);});
     cluster.addLayer(m);markers.set(r.id,m);});
 
   const sum=k=>list.reduce((a,r)=>a+(r[k]||0),0);
