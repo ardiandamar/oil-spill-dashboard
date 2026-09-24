@@ -178,14 +178,14 @@ select option{background:var(--bg)}
 .leaflet-container a.leaflet-popup-close-button{color:var(--muted);top:6px;right:6px;font-size:16px}
 .pop{max-height:min(270px,50vh);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(141,169,180,.35) transparent}
 .pop-head{padding:8px 12px 6px;border-top:3px solid var(--cat)}
-.pop-head h3{font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:-.005em;line-height:1.25;margin:4px 18px 1px 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pop-head h3{font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:-.005em;line-height:1.25;margin:4px 18px 1px 0;overflow-wrap:anywhere}
 .pop-head .m{color:var(--muted);font-size:10.5px}
 .cat{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:999px}
 .pop-body{padding:0 12px 8px}
 .f{padding:5px 0;border-top:1px solid var(--line)}
 .f .k{color:var(--muted);font-size:9.5px;margin-bottom:0;text-transform:uppercase;letter-spacing:.03em}
 .f .val{font-size:11.5px;white-space:pre-line;line-height:1.35}
-.f .val.clamp{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;white-space:normal}
+.f .val.clamp{white-space:normal;overflow-wrap:anywhere}
 .eco{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:3px}
 .eco div{background:var(--card-2);border-radius:6px;padding:3px 6px}
 .eco b{display:block;font-family:var(--display);font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -290,6 +290,20 @@ details .val{margin-top:8px}
   .card-h{padding:10px 14px 6px}
   .kpi{padding:8px 12px}
 }
+
+/* polygon layers */
+.ly{color:var(--text);font-family:var(--body)}
+.ly-btn{display:grid;place-items:center;width:36px;height:36px;background:rgba(4,18,26,.92);border:1px solid var(--line-2);border-radius:10px;padding:0;cursor:pointer;backdrop-filter:blur(6px)}
+.ly-btn:hover{background:var(--card-2)}
+.ly-btn i{font-size:18px;color:var(--boom)}
+.ly-panel{background:rgba(4,18,26,.92);border:1px solid var(--line-2);border-radius:12px;padding:8px 8px 6px;min-width:190px;backdrop-filter:blur(6px)}
+.ly.collapsed .ly-panel{display:none}
+.ly:not(.collapsed) .ly-btn{display:none}
+.ly-row{display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:7px;font-size:11.5px;cursor:pointer}
+.ly-row:hover{background:rgba(214,236,242,.06)}
+.ly-row input{accent-color:var(--boom);margin:0}
+.ly-sw{width:14px;height:10px;border-radius:3px;border:1px solid}
+.ly-st{margin-left:auto;color:var(--muted);font-size:10.5px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -385,6 +399,22 @@ details .val{margin-top:8px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrhmKfAp2kE5n1emmYJ0z_3CXP6nfaO_Ve1YguqageTO8exRNu6vm8ga2UM4Tuz0bsAQwYhkZ429mv/pub?gid=0&single=true&output=csv";
+
+/* ================================================================
+   LAYER POLIGON
+   Tambahkan satu baris per layer. File GeoJSON (EPSG:4326) diunggah ke
+   folder data/ di repository GitHub yang sama.
+     name   : nama yang tampil di tombol Layer
+     file   : lokasi file, relatif terhadap index.html
+     color  : warna garis dan isi poligon
+     label  : nama kolom atribut untuk judul pop-up (opsional)
+     fields : kolom yang ditampilkan di pop-up, {"Label tampil":"NAMA_KOLOM"}
+     on     : true bila layer langsung tampil saat halaman dibuka
+   Contoh:
+   {name:"Mangrove", file:"data/mangrove.geojson", color:"#6FD39B", label:"NAMOBJ", fields:{"Luas (ha)":"LUAS_HA","Kondisi":"KONDISI"}},
+   ================================================================ */
+const POLY_LAYERS = [
+];
 
 const CATS = {
   "Kecelakaan kapal":{v:"--c-kecelakaan",ic:"ti-ship"},
@@ -521,6 +551,52 @@ function refreshSelects(){
     if(!changed)break;
   }
   document.getElementById("reset").hidden=!Object.keys(F).some(k=>val(k));
+}
+
+
+/* ---------- polygon layers ---------- */
+map.createPane("polys");map.getPane("polys").style.zIndex=350;
+const polyState={};
+function polyPopup(cfg,p){
+  p=p||{};const title=(cfg.label&&clean(p[cfg.label]))||cfg.name;
+  let h="<div class='pop'><div class='pop-head' style='--cat:"+cfg.color+"'><span class='cat' style='background:"+cfg.color+"24;color:"+cfg.color+"'><i class='ti ti-polygon' aria-hidden='true'></i>"+esc(cfg.name)+"</span><h3>"+esc(title)+"</h3></div><div class='pop-body'>";
+  Object.entries(cfg.fields||{}).forEach(([lbl,key])=>{let v=p[key];if(v===null||v===undefined||clean(v)==="")return;
+    if(typeof v==="number")v=v.toLocaleString("id-ID",{maximumFractionDigits:2});
+    h+="<div class='f'><div class='k'>"+esc(lbl)+"</div><div class='val'>"+esc(v)+"</div></div>";});
+  return h+"</div></div>";
+}
+function setPolyStatus(i,t){const el=document.getElementById("ly-st-"+i);if(el)el.textContent=t||"";}
+function togglePoly(i,on){
+  const cfg=POLY_LAYERS[i],st=polyState[i]||(polyState[i]={});st.want=on;
+  if(!on){if(st.layer)map.removeLayer(st.layer);return;}
+  if(st.layer){st.layer.addTo(map);return;}
+  if(st.loading)return;st.loading=true;setPolyStatus(i,"memuat…");
+  fetch(cfg.file,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json();})
+    .then(geo=>{
+      const base={color:cfg.color,weight:1,opacity:.9,fillColor:cfg.color,fillOpacity:cfg.opacity??.3};
+      st.layer=L.geoJSON(geo,{pane:"polys",style:()=>base,
+        onEachFeature:(f,l)=>{l.bindPopup(polyPopup(cfg,f.properties),{maxWidth:220});
+          l.on("mouseover",()=>l.setStyle({fillOpacity:Math.min(.7,(cfg.opacity??.3)+.25),weight:2}));
+          l.on("mouseout",()=>l.setStyle(base));}});
+      st.loading=false;setPolyStatus(i,"");if(st.want)st.layer.addTo(map);
+    })
+    .catch(err=>{console.error(err);st.loading=false;setPolyStatus(i,"gagal dimuat");
+      const cb=document.getElementById("ly-cb-"+i);if(cb)cb.checked=false;st.want=false;});
+}
+if(POLY_LAYERS.length){
+  const LayerCtl=L.Control.extend({options:{position:"topleft"},onAdd(){
+    const d=L.DomUtil.create("div","ly collapsed");
+    let rows=POLY_LAYERS.map((c,i)=>"<label class='ly-row'><input type='checkbox' id='ly-cb-"+i+"'"+(c.on?" checked":"")+"><span class='ly-sw' style='background:"+c.color+"55;border-color:"+c.color+"'></span><span>"+esc(c.name)+"</span><span class='ly-st' id='ly-st-"+i+"'></span></label>").join("");
+    d.innerHTML="<button type='button' class='ly-btn' id='ly-open' title='Layer peta' aria-label='Tampilkan daftar layer' aria-expanded='false'><i class='ti ti-stack-2' aria-hidden='true'></i></button>"
+      +"<div class='ly-panel'><div class='lg-h'><span>Layer peta</span><button type='button' id='ly-close' aria-label='Tutup daftar layer'>&times;</button></div>"+rows+"</div>";
+    L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);
+    const open=v=>{d.classList.toggle("collapsed",!v);d.querySelector("#ly-open").setAttribute("aria-expanded",v);};
+    d.querySelector("#ly-open").onclick=()=>open(true);
+    d.querySelector("#ly-close").onclick=()=>open(false);
+    POLY_LAYERS.forEach((c,i)=>{d.querySelector("#ly-cb-"+i).addEventListener("change",e=>togglePoly(i,e.target.checked));});
+    return d;}});
+  new LayerCtl().addTo(map);
+  POLY_LAYERS.forEach((c,i)=>{if(c.on)togglePoly(i,true);});
 }
 
 /* ---------- popup ---------- */
